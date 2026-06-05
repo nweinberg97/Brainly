@@ -15,3 +15,23 @@ Brainly is a zero-dependency, local-first visual thinking workspace running dire
 ---
 
 ## 🔒 Security Model & Sandbox Guardrails
+
+┌────────────────────────────────────────────────────────┐
+│               SANDBOXED BROWSER RUNTIME                │
+│                                                        │
+│  ┌───────────────────────┐    ┌─────────────────────┐  │
+│  │     Client Canvas     │◄──►│ Deterministic Engine │  │
+│  └───────────┬───────────┘    └─────────────────────┘  │
+│              │ (Local Serialization)                   │
+│              ▼                                         │
+│  ┌───────────────────────┐    ┌─────────────────────┐  │
+│  │   localStorage State  │    │ IndexedDB PDF Blobs │  │
+│  └───────────────────────┘    └─────────────────────┘  │
+└────────────────────────────────────────────────────────┘
+
+
+1. **Zero External Surface Area:** The application initiates no hidden tracking telemetry, analytics suites, accounts, or cloud-database syncing loops.
+2. **Strict Client-Side Containment:** All state data fields are parsed inside `localStorage`. Heavy file segments like PDF binary layers reside within a localized transactional `IndexedDB` system layer.
+3. **Exploitation Countermeasures:** Structural data inputs pass through a string sanitization routine before rendering on the DOM to mitigate XSS attack profiles from malicious copy-pasted content.
+
+---
