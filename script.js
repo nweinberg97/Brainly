@@ -580,7 +580,7 @@ const TrashSystem = {
     }
 };
 
-// Browser-Native Hardware Transcription Driver Layer (REFACTORED)
+// Browser-Native Hardware Transcription Driver Layer
 const VoiceTranscriptionController = {
     recognition: null,
     isRecording: false,
@@ -701,12 +701,18 @@ const LocalAIEngine = {
         const fireQuery = () => {
             const query = queryInput.value.trim();
             if(!query) return;
-            this.appendMessage('user', query);
+            
+            const userMsgNode = this.appendMessage('user', query);
             queryInput.value = '';
 
-            setTimeout(() => {
+            setTimeout(async () => {
                 const response = this.computeLocalInference(query);
-                this.appendMessage('system', response);
+                const systemMsgNode = this.appendMessage('system', response);
+                
+                // Trigger premium audio synthesis layer if active global object exists
+                if (window.BrainlyAICore) {
+                    await window.BrainlyAICore.playVocalResponse(response, systemMsgNode);
+                }
             }, 600);
         };
 
@@ -721,6 +727,7 @@ const LocalAIEngine = {
         msg.innerText = text;
         log.appendChild(msg);
         log.scrollTop = log.scrollHeight;
+        return msg;
     },
 
     computeLocalInference(query) {
@@ -748,7 +755,7 @@ const LocalAIEngine = {
 };
 
 // Global DOM Interactive Orchestrator Activation Hooks
-document.addEventListener('DOMContentLoaded', async () => {
+window.addEventListener('DOMContentLoaded', async () => {
     StorageController.load();
     await BrainlyDB.init();
     UIRenderer.init();
@@ -817,24 +824,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     const aiClearBtn = document.getElementById('ai-clear-history-btn');
     const aiChatWindowLog = document.getElementById('ai-chat-log');
 
-    // Mount background models gracefully
-    BrainlyAICore.init();
+    if (aiVoiceBtn) {
+        aiVoiceBtn.addEventListener('click', () => {
+            const structuralActiveState = aiVoiceBtn.getAttribute('data-enabled') === 'true';
+            const targetNextState = !structuralActiveState;
+            
+            if (window.BrainlyAICore) {
+                window.BrainlyAICore.isVoiceActive = targetNextState;
+            }
+            
+            aiVoiceBtn.setAttribute('data-enabled', targetNextState);
+            
+            const labelNode = document.getElementById('ai-voice-btn-label');
+            if (labelNode) {
+                labelNode.innerText = targetNextState ? "Voice: ON" : "Voice: OFF";
+            }
+        });
+    }
 
-    aiVoiceBtn.addEventListener('click', () => {
-        const structuralActiveState = aiVoiceBtn.getAttribute('data-enabled') === 'true';
-        const targetNextState = !structuralActiveState;
-        
-        BrainlyAICore.isVoiceActive = targetNextState;
-        aiVoiceBtn.setAttribute('data-enabled', targetNextState);
-        document.getElementById('ai-voice-btn-label').innerText = targetNextState ? "Voice: ON" : "Voice: OFF";
-    });
-
-    aiClearBtn.addEventListener('click', () => {
-        if (aiChatWindowLog) {
-            aiChatWindowLog.innerHTML = '';
-            console.log("Session memory view canvas wiped clean.");
-        }
-    });
+    if (aiClearBtn) {
+        aiClearBtn.addEventListener('click', () => {
+            if (aiChatWindowLog) {
+                aiChatWindowLog.innerHTML = `
+                    <div class="ai-message system">
+                        Current session log wiped cleanly. Local context engine stabilized.
+                    </div>`;
+                console.log("Session memory view canvas wiped clean.");
+            }
+        });
+    }
 });
 
 // Sanitization utility layer preventing structural exploitation inside nodes
