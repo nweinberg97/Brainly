@@ -35,3 +35,36 @@ Brainly is a zero-dependency, local-first visual thinking workspace running dire
 3. **Exploitation Countermeasures:** Structural data inputs pass through a string sanitization routine before rendering on the DOM to mitigate XSS attack profiles from malicious copy-pasted content.
 
 ---
+---
+
+## 💾 Data Infrastructure Schemas
+
+Because Brainly is completely local-first, it converts your visual workspace into a clean, unified text state. When `StorageController.save()` triggers, this state is serialized and committed directly to the browser's persistent storage hardware under the key `brainly_state_package`.
+
+### `localStorage` State Envelope Snapshot
+
+```json
+{
+  "notes": [
+    {
+      "id": "note-1715498210344",
+      "title": "Core System Idea",
+      "summary": "AI summary of the note.",
+      "content": "Raw editable data string contents...",
+      "x": 420,
+      "y": 120,
+      "collapsed": false,
+      "views": 4,
+      "timestamp": 1715498210344
+    }
+  ],
+  "folders": [],
+  "links": [
+    {
+      "id": "link-1715498299102",
+      "title": "GitHub Integration Hub",
+      "url": "[https://github.com](https://github.com)",
+      "parentFolder": "lf-productivity"
+    }
+  ]
+}
