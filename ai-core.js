@@ -5,7 +5,7 @@
 
 import { KokoroTTS } from "https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js";
 
-export const BrainlyAICore = {
+const BrainlyAICore = {
     tts: null,
     isVoiceReady: false,
     isVoiceActive: false,
@@ -19,8 +19,7 @@ export const BrainlyAICore = {
             console.log("Waking premium vocal synthesis layers...");
             const useWebGPU = !!navigator.gpu;
             
-            this.tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX", {
-                dtype: useWebGPU ? "fp32" : "q8",
+            this.tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX", {\n                dtype: useWebGPU ? "fp32" : "q8",
                 device: useWebGPU ? "webgpu" : "wasm"
             });
             
@@ -36,9 +35,9 @@ export const BrainlyAICore = {
      * @param {Object} note - The target note object directly from BrainlyState.notes
      */
     extractMeaningfulContext(note) {
-        if (!note) return "";
-        const structuralPlaceholders = ["Draft ideation process.", "Enter data details...", "AI Processing pending..."];
-        const standardSummaryVolatile = !note.summary || structuralPlaceholders.some(p => note.summary.trim() === p);
+        if (!note) return '';
+        const p = 'Enter data details...';
+        const standardSummaryVolatile = (!note.content || note.content.trim() === p);
         
         return standardSummaryVolatile ? note.content : note.summary;
     },
@@ -76,3 +75,6 @@ export const BrainlyAICore = {
         }
     }
 };
+
+// EXPOSE TO GLOBAL WINDOW OBJECT SO SCRIPT.JS CAN SENSE IT
+window.BrainlyAICore = BrainlyAICore;
