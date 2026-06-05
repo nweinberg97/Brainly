@@ -19,7 +19,9 @@ const BrainlyAICore = {
             console.log("Waking premium vocal synthesis layers...");
             const useWebGPU = !!navigator.gpu;
             
-            this.tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX", {\n                dtype: useWebGPU ? "fp32" : "q8",
+            // FIX: Repaired the formatting/bracket typo block here to allow clean compilation
+            this.tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX", {
+                dtype: useWebGPU ? "fp32" : "q8",
                 device: useWebGPU ? "webgpu" : "wasm"
             });
             
@@ -35,11 +37,12 @@ const BrainlyAICore = {
      * @param {Object} note - The target note object directly from BrainlyState.notes
      */
     extractMeaningfulContext(note) {
-        if (!note) return '';
-        const p = 'Enter data details...';
-        const standardSummaryVolatile = (!note.content || note.content.trim() === p);
+        if (!note) return "";
+        const title = note.title ? note.title.trim() : "";
+        const content = note.content ? note.content.trim() : "";
+        const summary = note.summary ? note.summary.trim() : "";
         
-        return standardSummaryVolatile ? note.content : note.summary;
+        return `[Note: ${title || 'Untitled'} | Content: ${content || 'Empty'} | AI Summary: ${summary || 'None'}]`;
     },
 
     /**
