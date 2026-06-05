@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainly — Local-First Thinking Canvas</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header class="top-bar">
+        <div class="top-bar-left">
+            <div class="logo">🧠</div>
+            <span class="app-title">Brainly</span>
+        </div>
+        <div class="top-bar-center">
+            <div class="search-container">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="global-search" placeholder="Search notes, links, folders, and PDFs..." autocomplete="off">
+            </div>
+        </div>
+        <div class="top-bar-right">
+            <button class="menu-btn" id="menu-toggle" aria-label="Menu">☰</button>
+        </div>
+    </header>
+
+    <main class="canvas-workspace" id="canvas-workspace">
+        
+        <section class="my-links-container" id="my-links-anchor">
+            <div class="my-links-header">
+                <h3>🔗 My Links</h3>
+                <div class="my-links-actions">
+                    <button id="add-link-btn" title="Add External Link">＋ Link</button>
+                    <label for="pdf-upload" class="pdf-upload-label" title="Upload Local PDF">
+                        ＋ PDF
+                        <input type="file" id="pdf-upload" accept="application/pdf">
+                    </label>
+                </div>
+            </div>
+            
+            <div class="my-links-folders" id="my-links-folders-grid"></div>
+            
+            <div class="my-links-shelf" id="my-links-shelf"></div>
+        </section>
+
+        </main>
+
+    <nav class="bottom-ui-container">
+        <div class="fab-cluster">
+            <button class="fab-btn" id="fab-new-note" title="Create New Note">
+                <span class="fab-icon">📝</span>
+                <span class="fab-label">Note</span>
+            </button>
+            <button class="fab-btn" id="fab-voice-note" title="Record Local Voice Note">
+                <div class="pulse-indicator-dot" id="voice-pulse"></div>
+                <span class="fab-icon" id="voice-icon">🎙️</span>
+                <span class="fab-label" id="voice-label">Voice</span>
+            </button>
+            <button class="fab-btn" id="fab-ai-chat" title="Query Brainly Local AI">
+                <span class="fab-icon">✨</span>
+                <span class="fab-label">Brainly AI</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="trash-bin-zone" id="trash-bin-dropzone">
+        <div class="trash-bin-icon">🗑️</div>
+        <div class="trash-bin-text">Drop to Delete</div>
+    </div>
+
+    <div class="modal-overlay hidden" id="generic-modal">
+        <div class="modal-surface">
+            <h4 id="modal-title">Context Action</h4>
+            <div class="modal-body" id="modal-body-content"></div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="modal-cancel-btn">Cancel</button>
+                <button class="btn-primary" id="modal-confirm-btn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ai-panel hidden" id="ai-chat-panel">
+        <div class="ai-panel-header">
+            <div class="ai-panel-title">✨ Brainly Local Assistant</div>
+            <button class="close-panel-btn" id="close-ai-btn">×</button>
+        </div>
+        <div class="ai-chat-log" id="ai-chat-log">
+            <div class="ai-message system">
+                Hello! I am your sandboxed intelligence engine running locally. I can parse across all canvas notes, links, and documents. Ask me anything.
+            </div>
+        </div>
+        <div class="ai-panel-input-zone">
+            <input type="text" id="ai-user-query" placeholder="Ask about your ideas..." autocomplete="off">
+            <button id="ai-submit-btn">➔</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
