@@ -16,7 +16,7 @@
     --radius-lg: 16px;
     --radius-md: 12px;
     --radius-sm: 8px;
-    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
     --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
@@ -31,19 +31,18 @@ body {
     background-color: var(--bg-base);
     color: var(--text-primary);
     overflow: hidden;
-    -webkit-font-smoothing: antialiased;
+    letter-spacing: -0.01em;
 }
 
-/* Header Core Design Systems Grid Mapping */
+/* Header Control Strip */
 .top-bar {
-    display: grid;
-    grid-template-columns: 1fr 2fr 1fr;
+    display: flex;
     align-items: center;
+    justify-content: space-between;
     height: 52px;
     padding: 0 20px;
-    background-color: var(--surface-blur);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border-color);
     position: fixed;
     top: 0;
@@ -55,7 +54,7 @@ body {
 .top-bar-left {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .logo {
@@ -64,100 +63,114 @@ body {
 
 .app-title {
     font-weight: 600;
-    font-size: 15px;
-    letter-spacing: -0.2px;
+    font-size: 16px;
 }
 
 .top-bar-center {
-    display: flex;
-    justify-content: center;
-    width: 100%;
+    flex: 0 1 480px;
 }
 
 .search-container {
+    position: relative;
     display: flex;
     align-items: center;
-    background-color: rgba(0, 0, 0, 0.04);
-    border-radius: var(--radius-sm);
-    padding: 6px 12px;
-    width: 100%;
-    max-width: 480px;
-    transition: var(--transition-smooth);
-}
-
-.search-container:focus-within {
-    background-color: var(--surface-solid);
-    box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
 }
 
 .search-icon {
+    position: absolute;
+    left: 12px;
     font-size: 13px;
-    margin-right: 8px;
     color: var(--text-secondary);
 }
 
-.search-container input {
-    border: none;
-    background: transparent;
-    outline: none;
+#global-search {
     width: 100%;
+    height: 32px;
+    padding: 0 12px 0 34px;
+    background: rgba(0, 0, 0, 0.04);
+    border: none;
+    border-radius: 8px;
     font-size: 13px;
-    color: var(--text-primary);
+    font-family: inherit;
+    transition: var(--transition-smooth);
+}
+
+#global-search:focus {
+    outline: none;
+    background: var(--surface-solid);
+    box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.2);
 }
 
 .top-bar-right {
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+}
+
+.toolbar-action-btn {
+    background: var(--accent-apple);
+    color: #ffffff;
+    border: none;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.toolbar-action-btn:hover {
+    background: #0062c4;
 }
 
 .menu-btn {
     background: none;
     border: none;
-    font-size: 18px;
+    font-size: 20px;
     cursor: pointer;
-    color: var(--text-primary);
     padding: 4px;
-    border-radius: var(--radius-sm);
+    color: var(--text-primary);
 }
 
-/* Spatial Processing Canvas Blueprint */
+/* Master Spatial Window Container Workspace */
 .canvas-workspace {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: relative;
     width: 100vw;
     height: 100vh;
     padding-top: 52px;
-    overflow: auto;
-    background-image: radial-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+    overflow: hidden;
+    background-image: radial-gradient(rgba(0,0,0,0.05) 1px, transparent 0);
     background-size: 24px 24px;
-    z-index: 1;
 }
 
-/* Left-Docked Hyperlink Shelf Architecture */
+/* Widen Left-Hand Structural Links Container Shelf View Layout */
 .my-links-container {
-    position: fixed;
-    top: 72px;
-    left: 20px;
-    width: 280px;
-    max-height: calc(100vh - 160px);
-    background-color: var(--surface-blur);
+    position: absolute;
+    top: 52px;
+    left: 0;
+    bottom: 0;
+    width: 340px; /* Widened comfortably to avoid pinning grid bubbles */
+    background: rgba(245, 245, 247, 0.6);
     backdrop-filter: blur(20px);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
+    border-right: 1px solid var(--border-color);
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    padding: 16px;
-    z-index: 10;
-    overflow: hidden;
+    gap: 16px;
+    z-index: 40;
+    transition: var(--transition-smooth);
+}
+
+/* Sidebar Responsive Collapse Toggle Modifier Position */
+.my-links-container.collapsed {
+    transform: translateX(-100%);
+    box-shadow: none;
 }
 
 .my-links-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 14px;
+    justify-content: space-between;
 }
 
 .my-links-header h3 {
@@ -171,65 +184,60 @@ body {
 }
 
 .my-links-actions button, .pdf-upload-label {
-    background-color: rgba(0, 0, 0, 0.04);
-    border: none;
+    background: var(--surface-solid);
+    border: 1px solid var(--border-color);
     padding: 4px 8px;
-    border-radius: var(--radius-sm);
     font-size: 11px;
     font-weight: 500;
+    border-radius: 6px;
     cursor: pointer;
-    color: var(--text-primary);
     display: inline-flex;
     align-items: center;
     transition: var(--transition-smooth);
 }
 
 .my-links-actions button:hover, .pdf-upload-label:hover {
-    background-color: rgba(0, 0, 0, 0.08);
+    background: #f5f5f7;
 }
 
-.pdf-upload-label input[type="file"] {
-    display: none;
-}
-
-.my-links-folders {
+/* Preseeded Subdirectories Bubble Grid Interface */
+.my-links-folders-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
+    gap: 10px;
 }
 
-/* Target Folder Bubbles Layout */
 .link-folder-bubble {
-    background-color: var(--surface-solid);
+    background: var(--surface-solid);
     border: 1px solid var(--border-color);
+    padding: 12px;
     border-radius: var(--radius-md);
-    padding: 10px;
     cursor: pointer;
     transition: var(--transition-smooth);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    min-height: 58px;
+    user-select: none;
 }
 
-.link-folder-bubble:hover, .link-folder-bubble.dragover {
+.link-folder-bubble:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-sm);
+}
+
+.link-folder-bubble.dragover {
+    background: rgba(0, 113, 227, 0.05);
     border-color: var(--accent-apple);
 }
 
 .link-folder-title {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--text-primary);
+    margin-bottom: 6px;
 }
 
 .link-folder-mini-grid {
     display: flex;
-    gap: 3px;
-    margin-top: 6px;
+    gap: 4px;
     flex-wrap: wrap;
+    min-height: 6px;
 }
 
 .mini-indicator-dot {
@@ -238,30 +246,37 @@ body {
     border-radius: 50%;
 }
 
+/* General Link Elements Container Shelf */
 .my-links-shelf {
     flex: 1;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding-right: 2px;
+    gap: 8px;
+    padding-right: 4px;
 }
 
-/* Shelf Tile Cards Mapping */
+/* Dynamic Identity Color Layout Cards */
 .deterministic-tile {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 10px;
+    gap: 10px;
+    padding: 10px 12px;
     border-radius: var(--radius-sm);
-    cursor: grab;
-    user-select: none;
-    transition: var(--transition-smooth);
+    background: var(--surface-solid);
     border: 1px solid rgba(0,0,0,0.03);
+    cursor: grab;
+    transition: var(--transition-smooth);
+    user-select: none;
 }
 
-.deterministic-tile:active {
-    cursor: grabbing;
+.deterministic-tile:hover {
+    transform: translateX(2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.deterministic-tile.hidden {
+    display: none !important;
 }
 
 .tile-emoji {
@@ -274,81 +289,125 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    color: #1d1d1f;
 }
 
-/* Spatial Notes Components Layout Rules */
+/* Garbage Target Dropzone Layer */
+.trash-bin-dropzone {
+    border: 2px dashed rgba(255, 59, 48, 0.2);
+    background: rgba(255, 59, 48, 0.02);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: #ff3b30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: var(--transition-smooth);
+}
+
+.trash-bin-dropzone.hovered {
+    background: rgba(255, 59, 48, 0.08);
+    border-color: #ff3b30;
+    transform: scale(1.02);
+}
+
+/* Absolute Free-Canvas Elements Routing Layer */
 .canvas-element {
     position: absolute;
-    z-index: 5;
-    cursor: grab;
-    user-select: none;
+    z-index: 10;
+    cursor: move;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), width 0.3s ease, height 0.3s ease;
 }
 
-.canvas-element:active {
-    cursor: grabbing;
+.canvas-element.hidden {
+    display: none !important;
 }
 
-.canvas-element.dragging {
-    opacity: 0.4;
-}
-
+/* Note Canvas Structures */
 .brainly-note {
     width: 280px;
-    background-color: var(--surface-solid);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
+    background: var(--surface-solid);
     border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: height var(--transition-smooth);
+}
+
+.brainly-note:hover, .brainly-note.dragging {
+    box-shadow: var(--shadow-md);
 }
 
 .note-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 12px 14px;
-    background-color: rgba(0, 0, 0, 0.02);
-    border-bottom: 1px solid var(--border-color);
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: #fafafa;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    gap: 8px;
 }
 
 .note-title-text {
     font-size: 13px;
     font-weight: 600;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     outline: none;
-    width: 70%;
+}
+
+.note-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Quick Card Summarization Action Nodes */
+.note-summarize-btn {
+    background: rgba(0, 113, 227, 0.08);
+    color: var(--accent-apple);
+    border: none;
+    padding: 3px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+}
+
+.note-summarize-btn:hover {
+    background: rgba(0, 113, 227, 0.15);
 }
 
 .note-toggle-btn {
     background: none;
     border: none;
-    font-size: 10px;
-    color: var(--accent-apple);
+    color: var(--text-secondary);
+    font-size: 11px;
     cursor: pointer;
-    font-weight: 500;
 }
 
 .note-body {
-    padding: 14px;
+    padding: 12px;
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-.brainly-note.collapsed .note-body {
-    display: none;
-}
-
 .note-ai-summary-box {
-    background-color: rgba(0, 113, 227, 0.05);
-    border-left: 3px solid var(--accent-apple);
-    padding: 8px;
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    background: rgba(235, 235, 245, 0.3);
+    border-left: 2px solid var(--accent-apple);
+    padding: 6px 8px;
     font-size: 11px;
+    color: #48484a;
     line-height: 1.4;
-    color: #004b93;
+    border-radius: 0 4px 4px 0;
     outline: none;
 }
 
@@ -359,58 +418,66 @@ body {
     max-height: 180px;
     overflow-y: auto;
     outline: none;
-    color: #333;
+    color: var(--text-primary);
 }
 
 .note-metadata-strip {
     display: flex;
     justify-content: space-between;
-    font-size: 9px;
+    font-size: 10px;
     color: var(--text-secondary);
-    border-top: 1px solid rgba(0,0,0,0.04);
-    padding-top: 6px;
+    border-top: 1px solid rgba(0,0,0,0.02);
+    padding-top: 8px;
     margin-top: 4px;
 }
 
-/* Cluster Thought Folders Matrix */
+/* Note Collapsed Layout Formats */
+.brainly-note.collapsed {
+    height: auto;
+}
+
+.brainly-note.collapsed .note-body {
+    display: none;
+}
+
+/* Feature 4: Apple App-Folder UI System */
 .thought-folder-node {
-    width: 90px;
-    height: 90px;
-    background-color: var(--surface-solid);
-    border-radius: 50%;
-    box-shadow: var(--shadow-md);
-    border: 2px dashed rgba(0, 0, 0, 0.15);
+    width: 88px;
+    height: 88px;
+    border-radius: 22px;
+    background: var(--surface-solid);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 8px;
+    text-align: center;
+    gap: 4px;
     transition: var(--transition-smooth);
 }
 
-.thought-folder-node:hover, .thought-folder-node.dragover {
+.thought-folder-node:hover {
+    transform: scale(1.04);
+    box-shadow: var(--shadow-md);
+}
+
+.thought-folder-node.dragover {
     border-color: var(--accent-apple);
-    transform: scale(1.03);
+    background: rgba(0, 113, 227, 0.05) !important;
+    transform: scale(1.08);
 }
 
-.folder-bubble-matrix {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 4px;
-    margin-bottom: 6px;
-}
-
-.folder-mini-dot {
-    width: 8px;
-    height: 8px;
-    background-color: rgba(0, 0, 0, 0.2);
-    border-radius: 50%;
+.folder-theme-emoji {
+    font-size: 24px;
+    line-height: 1;
+    user-select: none;
 }
 
 .folder-label {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
-    text-align: center;
     width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -418,242 +485,277 @@ body {
     outline: none;
 }
 
-/* Bottom Interface Navigation Bar Layer */
-.bottom-ui-container {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 90;
-}
-
-.fab-cluster {
+/* Apple-Style Open State (The Frosty Glass Expansion Panel) */
+.thought-folder-node.expanded {
+    position: absolute;
+    width: 520px !important;
+    height: 380px !important;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.4) !important;
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    z-index: 500;
     display: flex;
-    gap: 12px;
-    background-color: var(--surface-blur);
-    backdrop-filter: blur(20px);
-    padding: 8px 12px;
-    border-radius: 30px;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-md);
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    padding: 18px;
+    cursor: default;
 }
 
-.fab-btn {
+.thought-folder-node.expanded:hover {
+    transform: none;
+}
+
+/* Header Container Inside Icy Folder UI */
+.expanded-folder-header {
     display: flex;
     align-items: center;
-    gap: 6px;
-    background: none;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    padding-bottom: 8px;
+}
+
+.expanded-folder-header .folder-label {
+    font-size: 16px;
+    font-weight: 700;
+    text-align: left;
+    white-space: normal;
+    overflow: visible;
+}
+
+.folder-close-btn {
+    background: rgba(0, 0, 0, 0.05);
     border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    font-size: 14px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: var(--transition-smooth);
+}
+
+.folder-close-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+/* Sub-card Display Scroll Matrix Inside Frosted Glass Window */
+.expanded-folder-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+/* Nested Sub-Note Inner Extraction Target Elements */
+.folder-subnote-card {
+    background: var(--surface-solid);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     position: relative;
 }
 
-.fab-btn:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-.fab-icon {
-    font-size: 16px;
-}
-
-.fab-label {
+.subnote-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     font-size: 12px;
-    font-weight: 500;
-}
-
-/* Recording UI Indicators */
-.pulse-indicator-dot {
-    position: absolute;
-    top: 6px;
-    right: 12px;
-    width: 6px;
-    height: 6px;
-    background-color: #ff3b30;
-    border-radius: 50%;
-    display: none;
-}
-
-.fab-btn.recording .pulse-indicator-dot {
-    display: block;
-    animation: beaconPulse 1.2s infinite ease-in-out;
-}
-
-@keyframes beaconPulse {
-    0% { transform: scale(0.9); opacity: 1; }
-    50% { transform: scale(1.4); opacity: 0.4; }
-    100% { transform: scale(0.9); opacity: 1; }
-}
-
-/* Absolute Safe Eraser Dropzone Elements */
-.trash-bin-zone {
-    position: fixed;
-    bottom: 24px;
-    right: 20px;
-    width: 72px;
-    height: 72px;
-    background-color: var(--surface-blur);
-    backdrop-filter: blur(20px);
-    border: 2px dashed var(--border-color);
-    border-radius: var(--radius-lg);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition-smooth);
-    z-index: 10;
-}
-
-.trash-bin-zone.hovered {
-    background-color: rgba(255, 59, 48, 0.08);
-    border-color: #ff3b30;
-    color: #ff3b30;
-    transform: scale(1.05);
-}
-
-.trash-bin-icon {
-    font-size: 20px;
-    margin-bottom: 2px;
-}
-
-.trash-bin-text {
-    font-size: 8px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.2px;
-    color: var(--text-secondary);
-}
-
-/* Modal Window Layout Overlays */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    backdrop-filter: blur(4px);
-}
-
-.modal-surface {
-    background-color: var(--surface-solid);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    width: 90%;
-    max-width: 400px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-}
-
-.modal-surface h4 {
-    font-size: 15px;
     font-weight: 600;
 }
 
-.modal-body input {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1px solid var(--border-color);
-    background-color: rgba(0,0,0,0.02);
-    border-radius: var(--radius-sm);
-    outline: none;
+.subnote-extract-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
     font-size: 13px;
+    color: var(--accent-apple);
+    padding: 2px;
+    title: "Extract note back to canvas";
 }
 
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+.subnote-card-preview {
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.modal-footer button {
-    padding: 6px 14px;
-    border-radius: var(--radius-sm);
+/* Desktop Context Right-Click Menus */
+.custom-context-menu {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(15px);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    border-radius: 10px;
+    padding: 4px 0;
+    width: 160px;
+    z-index: 1000;
+}
+
+.custom-context-menu.hidden {
+    display: none !important;
+}
+
+.context-menu-item {
+    padding: 8px 14px;
     font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    border: none;
+    color: var(--text-primary);
+    transition: background 0.1s ease;
 }
 
-.btn-secondary { background-color: rgba(0,0,0,0.05); color: var(--text-primary); }
-.btn-primary { background-color: var(--accent-apple); color: white; }
+.context-menu-item:hover {
+    background: var(--accent-apple);
+    color: #ffffff;
+}
 
-.hidden { display: none !important; }
-
-/* =====================================================================
-  UPDATED LOCAL AI CONVERSATIONAL COMPANION INTERFACE LAYOUT RULES
-  =====================================================================
-*/
-
-.ai-panel {
+/* Action Control Array FAB Layers */
+.fab-dock-cluster {
     position: fixed;
-    bottom: 88px;
-    right: 20px;
-    width: 380px;
-    height: 480px;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    gap: 12px;
+    z-index: 80;
+}
+
+.fab-trigger {
+    height: 44px;
+    padding: 0 18px;
+    border: none;
+    border-radius: 22px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-smooth);
+}
+
+.fab-trigger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.fab-trigger.main-action {
+    background: var(--text-primary);
+    color: var(--surface-solid);
+}
+
+.fab-trigger.voice-action {
+    background: var(--surface-solid);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.fab-trigger.voice-action.recording {
+    background: #ff3b30;
+    color: #ffffff;
+    animation: recordingPulse 1.4s infinite ease-in-out;
+}
+
+@keyframes recordingPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); box-shadow: 0 0 14px rgba(255,59,48,0.4); }
+    100% { transform: scale(1); }
+}
+
+.fab-trigger.ai-action {
+    background: linear-gradient(135deg, #8e2de2, #4a00e0);
+    color: #ffffff;
+}
+
+/* Brainly Sandbox Communication Engine Dashboard Panel */
+.ai-chat-panel {
+    position: fixed;
+    top: 68px;
+    right: 24px;
+    bottom: 84px;
+    width: 360px;
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    border-radius: 16px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-lg);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    z-index: 120;
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
+    z-index: 90;
+    transition: var(--transition-smooth);
 }
 
-/* OPTIMIZED CHAT HEADER STRUCTURAL ARRAY */
+.ai-chat-panel.hidden {
+    transform: translateX(390px);
+    opacity: 0;
+    pointer-events: none;
+}
+
 .ai-chat-panel-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 14px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    background: rgba(250, 250, 250, 0.9);
-    gap: 8px;
+    padding: 14px 16px;
+    background: rgba(245, 245, 247, 0.5);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .ai-branding-block {
     display: flex;
     align-items: center;
     gap: 6px;
-    min-width: fit-content;
 }
 
 .ai-spark-icon {
-    font-size: 15px;
+    font-size: 14px;
 }
 
-.ai-chat-panel-header h3 {
+.ai-branding-block h3 {
     font-size: 13px;
     font-weight: 600;
-    color: #1d1d1f;
 }
 
-/* Squeeze-proof Utility Buttons Hub */
 .ai-chat-control-array {
     display: flex;
     align-items: center;
     gap: 6px;
-    margin-left: auto;
+}
+
+#close-ai-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 2px;
 }
 
 .ai-utility-action-btn {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
-    font-size: 10px;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 11px;
     font-weight: 600;
     font-family: inherit;
     color: #475569;
@@ -661,7 +763,6 @@ body {
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     cursor: pointer;
-    white-space: nowrap;
     transition: all 0.15s ease-in-out;
 }
 
@@ -697,40 +798,22 @@ body {
     color: #991b1b;
 }
 
-#close-ai-btn {
-    background: none;
-    border: none;
-    font-size: 18px;
-    color: #94a3b8;
-    cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 4px;
-    line-height: 1;
-    transition: color 0.1s ease;
-}
-
-#close-ai-btn:hover {
-    color: #475569;
-}
-
-/* Message Log Stream Terminal */
+/* Conversation Log Window Stream */
 .ai-chat-log {
     flex: 1;
-    padding: 16px;
     overflow-y: auto;
+    padding: 16px;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background: rgba(255, 255, 255, 0.4);
 }
 
 .ai-message {
     max-width: 85%;
     padding: 10px 14px;
-    font-size: 12.5px;
-    line-height: 1.45;
+    font-size: 12px;
+    line-height: 1.5;
     border-radius: 14px;
-    word-wrap: break-word;
 }
 
 .ai-message.system {
@@ -768,37 +851,98 @@ body {
     gap: 8px;
 }
 
-.ai-panel-input-zone input {
+.ai-user-query {
     flex: 1;
-    padding: 8px 12px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    background: #ffffff;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid var(--border-color);
+    background: var(--surface-solid);
     border-radius: 8px;
-    outline: none;
-    font-size: 12.5px;
+    font-size: 13px;
     font-family: inherit;
-    transition: border-color 0.15s ease;
-}
-
-.ai-panel-input-zone input:focus {
-    border-color: var(--accent-apple);
+    outline: none;
 }
 
 #ai-submit-btn {
-    background: var(--accent-apple);
-    color: white;
+    width: 34px;
+    height: 34px;
+    background: var(--text-primary);
+    color: var(--surface-solid);
     border: none;
-    width: 32px;
-    height: 32px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: opacity 0.1s ease;
 }
 
-#ai-submit-btn:hover {
-    opacity: 0.9;
+/* Shared Modal Card Surface System Overlay */
+.modal-backdrop-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.modal-backdrop-overlay.hidden {
+    display: none !important;
+}
+
+.modal-surface-card {
+    background: var(--surface-solid);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    width: 400px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.modal-surface-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+#modal-text-input {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 13px;
+    outline: none;
+}
+
+.modal-footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.modal-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.modal-btn.primary {
+    background: var(--accent-apple);
+    color: #ffffff;
+}
+
+.modal-btn.secondary {
+    background: #f5f5f7;
+    color: var(--text-primary);
 }
