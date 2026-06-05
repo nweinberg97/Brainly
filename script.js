@@ -580,10 +580,11 @@ const TrashSystem = {
     }
 };
 
-// Browser-Native Hardware Transcription Driver Layer
+// Browser-Native Hardware Transcription Driver Layer (REFACTORED)
 const VoiceTranscriptionController = {
     recognition: null,
     isRecording: false,
+    masterTranscript: '', // Dedicated persistent sequence string
 
     init() {
         const SpeechEngine = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -594,15 +595,38 @@ const VoiceTranscriptionController = {
             this.recognition.lang = 'en-US';
 
             this.recognition.onresult = (e) => {
-                let textAggregation = '';
+                let interimTranscript = '';
+                
+                // Process stream inputs incrementally from current delta tracking index point
                 for (let i = e.resultIndex; i < e.results.length; ++i) {
-                    if (e.results[i].isFinal) textAggregation += e.results[i][0].transcript;
+                    const transcriptChunk = e.results[i][0].transcript;
+                    if (e.results[i].isFinal) {
+                        this.masterTranscript += transcriptChunk + ' ';
+                    } else {
+                        interimTranscript += transcriptChunk;
+                    }
                 }
-                if(textAggregation.trim()) this.cacheTranscription = textAggregation;
+
+                // Output real-time micro feedbacks cleanly inside labels
+                const displayLabel = document.getElementById('voice-label');
+                if (displayLabel) {
+                    displayLabel.innerText = interimTranscript ? `...${interimTranscript.substring(0, 15)}` : 'Listening...';
+                }
             };
 
-            this.recognition.onerror = () => this.killRecordingUI();
-            this.recognition.onend = () => this.completeVoiceTransaction();
+            this.recognition.onerror = (event) => {
+                console.error("Speech Recognition Engine Fault:", event.error);
+                this.killRecordingUI();
+            };
+
+            this.recognition.onend = () => {
+                // Safeguard against short-pause drops: Auto resume loop sequence if explicitly still active
+                if (this.isRecording) {
+                    this.recognition.start();
+                } else {
+                    this.completeVoiceTransaction();
+                }
+            };
         }
     },
 
@@ -610,19 +634,19 @@ const VoiceTranscriptionController = {
         if (!this.recognition) {
             alert("SpeechRecognition API is not natively operational on your standard browser client architecture. Running text fallback instead.");
             const fallback = prompt("Speak into your virtual transcription deck:");
-            if(fallback) this.spawnVoiceNoteNode(fallback);
+            if (fallback) this.spawnVoiceNoteNode(fallback);
             return;
         }
 
         const btn = document.getElementById('fab-voice-note');
         if (!this.isRecording) {
             this.isRecording = true;
-            this.cacheTranscription = '';
+            this.masterTranscript = ''; // Clean buffer slate configurations
             btn.classList.add('recording');
             document.getElementById('voice-label').innerText = 'Listening...';
             this.recognition.start();
         } else {
-            this.isRecording = false;
+            this.isRecording = false; // Flag to skip restart logic inside onend block handler
             this.recognition.stop();
         }
     },
@@ -630,15 +654,18 @@ const VoiceTranscriptionController = {
     killRecordingUI() {
         this.isRecording = false;
         const btn = document.getElementById('fab-voice-note');
-        btn.classList.remove('recording');
-        document.getElementById('voice-label').innerText = 'Voice';
+        if (btn) btn.classList.remove('recording');
+        const label = document.getElementById('voice-label');
+        if (label) label.innerText = 'Voice';
     },
 
     completeVoiceTransaction() {
         this.killRecordingUI();
-        if (this.cacheTranscription && this.cacheTranscription.trim().length > 0) {
-            this.spawnVoiceNoteNode(this.cacheTranscription);
+        const cleanOutput = this.masterTranscript.trim();
+        if (cleanOutput.length > 0) {
+            this.spawnVoiceNoteNode(cleanOutput);
         }
+        this.masterTranscript = ''; // Safely clear structural space boundaries
     },
 
     spawnVoiceNoteNode(transcribedText) {
