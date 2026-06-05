@@ -14,17 +14,7 @@ const BrainlyState = {
         { id: 'lf-research', title: 'Research' },
         { id: 'lf-productivity', title: 'Productivity' }
     ],
-    activeDraggable: null, // Tracking memory mapping for DragEvent lifecycle
-    aiChatHistory: [],    // Session memory tracking array for local learning companion
-    isVoiceOutputActive: false // State toggle for speak-back voice synthesis engine
-};
-
-// Helper utility to safely sanitize user text strings
-const escapeHTML = (str) => {
-    if (!str) return '';
-    return str.replace(/[&<>'"]/g, 
-        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-    );
+    activeDraggable: null // Tracking memory mapping for DragEvent lifecycle
 };
 
 // IndexedDB Access layer optimized for Local file data storage (PDF blobs)
@@ -86,6 +76,7 @@ const IdentityEngine = {
     generateHSL(str) {
         const hash = this.hashString(str);
         const hue = Math.abs(hash) % 360;
+        // Output soft, high-fidelity muted pastel variants
         return `hsl(${hue}, 65%, 88%)`;
     },
 
@@ -107,7 +98,7 @@ const IdentityEngine = {
                 return item.emoji;
             }
         }
-        return '📌';
+        return '📌'; // Default deterministic anchor
     }
 };
 
@@ -165,15 +156,18 @@ const UIRenderer = {
     },
 
     renderAll() {
+        // Clear previous volatile UI configurations
         document.querySelectorAll('.canvas-element').forEach(el => el.remove());
         this.linksShelf.innerHTML = '';
         this.linksFolderGrid.innerHTML = '';
 
+        // Render My Links Directory infrastructure
         BrainlyState.linkFolders.forEach(folder => {
             const el = this.createLinkFolderBubble(folder);
             this.linksFolderGrid.appendChild(el);
         });
 
+        // Sort items inside My Links container shelf
         BrainlyState.links.forEach(link => {
             if (!link.parentFolder) {
                 const tile = this.createDeterministicTile(link);
@@ -181,6 +175,7 @@ const UIRenderer = {
             }
         });
 
+        // Distribute items onto Canvas Spatial layout grid
         BrainlyState.notes.forEach(note => {
             const noteEl = this.createNoteNode(note);
             this.canvas.appendChild(noteEl);
@@ -203,6 +198,7 @@ const UIRenderer = {
         const seedValue = item.url || item.title;
         
         tile.style.backgroundColor = IdentityEngine.generateHSL(seedValue);
+        
         const emoji = IdentityEngine.matchEmoji(item.title, item.url || '');
         
         tile.innerHTML = `
@@ -215,6 +211,7 @@ const UIRenderer = {
             e.dataTransfer.setData('text/plain', item.id);
         });
 
+        // Double click to interact with targeted data
         tile.addEventListener('dblclick', () => {
             if (item.url) {
                 window.open(item.url, '_blank', 'noopener,noreferrer');
@@ -236,6 +233,7 @@ const UIRenderer = {
         div.className = 'link-folder-bubble';
         div.dataset.id = folder.id;
 
+        // Collect child subcomponents
         const children = BrainlyState.links.filter(l => l.parentFolder === folder.id);
         
         let subDotsHTML = '';
@@ -249,6 +247,7 @@ const UIRenderer = {
             <div class="link-folder-mini-grid">${subDotsHTML}</div>
         `;
 
+        // Handle dropping links into folders
         div.addEventListener('dragover', (e) => e.preventDefault());
         div.addEventListener('dragenter', () => div.classList.add('dragover'));
         div.addEventListener('dragleave', () => div.classList.remove('dragover'));
@@ -267,6 +266,7 @@ const UIRenderer = {
         });
 
         div.addEventListener('dblclick', () => {
+            // Expand modal view container showing complete directory configuration
             ModalSystem.showFolderContents(folder);
         });
 
@@ -288,7 +288,7 @@ const UIRenderer = {
                 <button class="note-toggle-btn">${note.collapsed ? 'Expand' : 'Collapse'}</button>
             </div>
             <div class="note-body">
-                <div class="note-ai-summary-box" contenteditable="true" spellcheck="false" title="Edit manual summary tracking text">${escapeHTML(note.summary || '')}</div>
+                <div class="note-ai-summary-box" contenteditable="true" spellcheck="false" title="Double click to edit AI context">${escapeHTML(note.summary || 'AI Processing pending...')}</div>
                 <div class="note-raw-content" contenteditable="true" spellcheck="false">${escapeHTML(note.content)}</div>
                 <div class="note-metadata-strip">
                     <span>👁️ ${note.views} views</span>
@@ -297,22 +297,23 @@ const UIRenderer = {
             </div>
         `;
 
+        // Interactive Inline Input Synchronization Hooks
         const titleEl = container.querySelector('.note-title-text');
         const summaryEl = container.querySelector('.note-ai-summary-box');
         const contentEl = container.querySelector('.note-raw-content');
 
-        // BUG FIX: Shift from 'blur' to immediate atomic state updates on key input loops
-        const syncStateMutation = () => {
+        const updateState = () => {
             note.title = titleEl.innerText;
             note.summary = summaryEl.innerText;
             note.content = contentEl.innerText;
             StorageController.save();
         };
 
-        titleEl.addEventListener('input', syncStateMutation);
-        summaryEl.addEventListener('input', syncStateMutation);
-        contentEl.addEventListener('input', syncStateMutation);
+        titleEl.addEventListener('blur', updateState);
+        summaryEl.addEventListener('blur', updateState);
+        contentEl.addEventListener('blur', updateState);
 
+        // Tracking focus visibility data expansion arrays
         contentEl.addEventListener('focus', () => {
             note.views++;
             container.querySelector('.note-metadata-strip span').innerText = `👁️ ${note.views} views`;
@@ -350,11 +351,12 @@ const UIRenderer = {
         `;
 
         const label = container.querySelector('.folder-label');
-        label.addEventListener('input', () => {
+        label.addEventListener('blur', () => {
             folder.title = label.innerText;
             StorageController.save();
         });
 
+        // Enable internal ingestion targets
         container.addEventListener('dragover', (e) => e.preventDefault());
         container.addEventListener('dragenter', () => container.classList.add('dragover'));
         container.addEventListener('dragleave', () => container.classList.remove('dragover'));
@@ -363,6 +365,7 @@ const UIRenderer = {
             container.classList.remove('dragover');
             const targetData = BrainlyState.activeDraggable;
             if (targetData && targetData.type === 'note') {
+                // Remove note from root canvas, append relation record arrays
                 BrainlyState.notes = BrainlyState.notes.filter(n => n.id !== targetData.id);
                 StorageController.save();
                 UIRenderer.renderAll();
@@ -377,6 +380,7 @@ const UIRenderer = {
         element.addEventListener('dragstart', (e) => {
             BrainlyState.activeDraggable = { id: stateRef.id, type: element.dataset.type };
             element.classList.add('dragging');
+            // Offset cache logic parameters
             e.dataTransfer.setData('text/plain', JSON.stringify({
                 offsetX: e.offsetX,
                 offsetY: e.offsetY
@@ -398,6 +402,7 @@ const UIRenderer = {
             const active = BrainlyState.activeDraggable;
             if (!active) return;
 
+            // Handle clean dropping mechanisms back to shelf interface partitions
             if (e.target.id === 'canvas-workspace' && (active.type === 'note' || active.type === 'thought-folder')) {
                 let offset = { offsetX: 40, offsetY: 40 };
                 try {
@@ -426,9 +431,7 @@ const UIRenderer = {
 const EngineSearch = {
     init() {
         const input = document.getElementById('global-search');
-        if (input) {
-            input.addEventListener('input', (e) => this.execute(e.target.value));
-        }
+        input.addEventListener('input', (e) => this.execute(e.target.value));
     },
 
     execute(term) {
@@ -438,12 +441,13 @@ const EngineSearch = {
             return;
         }
 
+        // Apply strict selective filtering criteria across UI layouts
         document.querySelectorAll('.brainly-note').forEach(el => {
             const note = BrainlyState.notes.find(n => n.id === el.dataset.id);
             if (note) {
                 const match = note.title.toLowerCase().includes(cleanTerm) || 
                               note.content.toLowerCase().includes(cleanTerm) || 
-                              (note.summary && note.summary.toLowerCase().includes(cleanTerm));
+                              note.summary.toLowerCase().includes(cleanTerm);
                 el.classList.toggle('hidden', !match);
             }
         });
@@ -475,8 +479,8 @@ const ModalSystem = {
         this.confirmBtn = document.getElementById('modal-confirm-btn');
         this.cancelBtn = document.getElementById('modal-cancel-btn');
 
-        if (this.cancelBtn) this.cancelBtn.addEventListener('click', () => this.hide());
-        if (this.confirmBtn) this.confirmBtn.addEventListener('click', () => {
+        this.cancelBtn.addEventListener('click', () => this.hide());
+        this.confirmBtn.addEventListener('click', () => {
             if (this.onConfirmCallback) this.onConfirmCallback();
             this.hide();
         });
@@ -498,7 +502,7 @@ const ModalSystem = {
         const children = BrainlyState.links.filter(l => l.parentFolder === folder.id);
         
         let contentsHTML = '<div class="modal-folder-view-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-height:240px; overflow-y:auto; padding:10px 0;">';
-        if(children.length === 0) contentsHTML += '<p style="font-size:12px; color:gray; grid-column:span 3;">Folder empty. Drag tiles inside the manager window.</p>';
+        if(children.length === 0) contentsHTML += '<p style="font-size:12px; color:gray; grid-column:span 3;">Folder empty. Drag tiles in inside the manager window.</p>';
         
         children.forEach(child => {
             const color = IdentityEngine.generateHSL(child.url || child.title);
@@ -514,9 +518,10 @@ const ModalSystem = {
         
         this.body.innerHTML = contentsHTML;
         this.confirmBtn.innerText = "Close";
-        this.onConfirmCallback = null;
+        this.onConfirmCallback = null; // Display-only modal view container layout
         this.overlay.classList.remove('hidden');
 
+        // Setup removal listeners
         this.body.querySelectorAll('.remove-from-folder').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -550,7 +555,6 @@ const ModalSystem = {
 const TrashSystem = {
     init() {
         const zone = document.getElementById('trash-bin-dropzone');
-        if (!zone) return;
         zone.addEventListener('dragover', (e) => e.preventDefault());
         zone.addEventListener('dragenter', () => zone.classList.add('hovered'));
         zone.addEventListener('dragleave', () => zone.classList.remove('hovered'));
@@ -576,11 +580,11 @@ const TrashSystem = {
     }
 };
 
-// Browser-Native Hardware Transcription Driver Layer
+// Browser-Native Hardware Transcription Driver Layer (REFACTORED)
 const VoiceTranscriptionController = {
     recognition: null,
     isRecording: false,
-    masterTranscript: '',
+    masterTranscript: '', // Dedicated persistent sequence string
 
     init() {
         const SpeechEngine = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -592,6 +596,8 @@ const VoiceTranscriptionController = {
 
             this.recognition.onresult = (e) => {
                 let interimTranscript = '';
+                
+                // Process stream inputs incrementally from current delta tracking index point
                 for (let i = e.resultIndex; i < e.results.length; ++i) {
                     const transcriptChunk = e.results[i][0].transcript;
                     if (e.results[i].isFinal) {
@@ -601,6 +607,7 @@ const VoiceTranscriptionController = {
                     }
                 }
 
+                // Output real-time micro feedbacks cleanly inside labels
                 const displayLabel = document.getElementById('voice-label');
                 if (displayLabel) {
                     displayLabel.innerText = interimTranscript ? `...${interimTranscript.substring(0, 15)}` : 'Listening...';
@@ -613,6 +620,7 @@ const VoiceTranscriptionController = {
             };
 
             this.recognition.onend = () => {
+                // Safeguard against short-pause drops: Auto resume loop sequence if explicitly still active
                 if (this.isRecording) {
                     this.recognition.start();
                 } else {
@@ -633,12 +641,12 @@ const VoiceTranscriptionController = {
         const btn = document.getElementById('fab-voice-note');
         if (!this.isRecording) {
             this.isRecording = true;
-            this.masterTranscript = '';
+            this.masterTranscript = ''; // Clean buffer slate configurations
             btn.classList.add('recording');
             document.getElementById('voice-label').innerText = 'Listening...';
             this.recognition.start();
         } else {
-            this.isRecording = false;
+            this.isRecording = false; // Flag to skip restart logic inside onend block handler
             this.recognition.stop();
         }
     },
@@ -657,14 +665,14 @@ const VoiceTranscriptionController = {
         if (cleanOutput.length > 0) {
             this.spawnVoiceNoteNode(cleanOutput);
         }
-        this.masterTranscript = '';
+        this.masterTranscript = ''; // Safely clear structural space boundaries
     },
 
     spawnVoiceNoteNode(transcribedText) {
         const newNote = {
             id: `note-voice-${Date.now()}`,
             title: '🎙️ Transcribed Thought',
-            summary: '',
+            summary: 'Locally captured transcription data.',
             content: transcribedText,
             x: 450,
             y: 250,
@@ -678,7 +686,7 @@ const VoiceTranscriptionController = {
     }
 };
 
-// Conversational AI Engine, Native Speech Synthesis (TTS), & Explicit Local Data Hub Sharing Pipeline
+// Sandbox WebWorker Vector Embedding Search Layer Mock
 const LocalAIEngine = {
     init() {
         const panel = document.getElementById('ai-chat-panel');
@@ -686,15 +694,9 @@ const LocalAIEngine = {
         const close = document.getElementById('close-ai-btn');
         const submit = document.getElementById('ai-submit-btn');
         const queryInput = document.getElementById('ai-user-query');
-        
-        // NEW ROADMAP HOOKS: UI control triggers
-        const clearBtn = document.getElementById('ai-clear-btn');
-        const voiceToggleBtn = document.getElementById('ai-voice-toggle-btn');
-        const exportAppleBtn = document.getElementById('export-apple-btn');
-        const exportGoogleBtn = document.getElementById('export-google-btn');
 
-        if(toggle) toggle.addEventListener('click', () => panel.classList.toggle('hidden'));
-        if(close) close.addEventListener('click', () => panel.classList.add('hidden'));
+        toggle.addEventListener('click', () => panel.classList.toggle('hidden'));
+        close.addEventListener('click', () => panel.classList.add('hidden'));
 
         const fireQuery = () => {
             const query = queryInput.value.trim();
@@ -705,85 +707,30 @@ const LocalAIEngine = {
             setTimeout(() => {
                 const response = this.computeLocalInference(query);
                 this.appendMessage('system', response);
-                // NEW ROADMAP HOOK: Speak back response strings conditionally
-                this.speakBackSpeechSynthesis(response);
             }, 600);
         };
 
-        if(submit) submit.addEventListener('click', fireQuery);
-        if(queryInput) queryInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') fireQuery(); });
-
-        // NEW ROADMAP HOOKS: Event Wireframes for the extended privacy architecture
-        if(clearBtn) clearBtn.addEventListener('click', () => this.clearConversationHistory());
-        if(voiceToggleBtn) {
-            voiceToggleBtn.addEventListener('click', () => {
-                BrainlyState.isVoiceOutputActive = !BrainlyState.isVoiceOutputActive;
-                voiceToggleBtn.classList.toggle('voice-active', BrainlyState.isVoiceOutputActive);
-                voiceToggleBtn.innerText = BrainlyState.isVoiceOutputActive ? "🔊 Voice: On" : "🔈 Voice: Off";
-                if(!BrainlyState.isVoiceOutputActive) window.speechSynthesis.cancel();
-            });
-        }
-        if(exportAppleBtn) exportAppleBtn.addEventListener('click', () => this.triggerEcosystemExportGateway('Apple Notes'));
-        if(exportGoogleBtn) exportGoogleBtn.addEventListener('click', () => this.triggerEcosystemExportGateway('Google Drive'));
+        submit.addEventListener('click', fireQuery);
+        queryInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') fireQuery(); });
     },
 
     appendMessage(role, text) {
         const log = document.getElementById('ai-chat-log');
-        if (!log) return;
         const msg = document.createElement('div');
         msg.className = `ai-message ${role}`;
         msg.innerText = text;
         log.appendChild(msg);
         log.scrollTop = log.scrollHeight;
-        
-        // Retain session history array profiles locally
-        BrainlyState.aiChatHistory.push({ role, text, timestamp: Date.now() });
     },
 
-    // ROADMAP ADDITION: Clear running text records and wipe memory boundaries
-    clearConversationHistory() {
-        BrainlyState.aiChatHistory = [];
-        window.speechSynthesis.cancel();
-        const log = document.getElementById('ai-chat-log');
-        if (log) log.innerHTML = '<div class="ai-system-alert">Conversation space cleared. Ready for fresh exploration.</div>';
-    },
-
-    // ROADMAP ADDITION: Browser Native Text to Speech Synthesis Engine Loop
-    speakBackSpeechSynthesis(text) {
-        if (!BrainlyState.isVoiceOutputActive) return;
-        window.speechSynthesis.cancel(); // Stop any pending utterance queue
-        
-        // Sanitize string metrics for cleaner speech synthesis translation reads
-        const cleanedText = text.replace(/\[\d+\]/g, '').replace(/[\*#_]/g, '');
-        const utterance = new SpeechSynthesisUtterance(cleanedText);
-        utterance.lang = 'en-US';
-        utterance.rate = 1.05; // Slightly enhanced cadence performance
-        utterance.pitch = 1.0;
-        
-        window.speechSynthesis.speak(utterance);
-    },
-
-    // BUG FIX: Context Parsing Overhaul inside computeLocalInference
     computeLocalInference(query) {
         const q = query.toLowerCase();
         
         if (q.includes('summarize') || q.includes('ideas') || q.includes('notes')) {
             if(BrainlyState.notes.length === 0) return "You currently have no active notes cached on this canvas ecosystem.";
-            
-            let responseStr = "Summary analysis across your canvas data metrics:\n";
+            let responseStr = "Summary analysis across your canvas data metrics: \n";
             BrainlyState.notes.forEach((n, i) => {
-                // FIXED: Filter out placeholders like "Draft ideation process" to enforce pure content indexing reads
-                const contentText = n.content ? n.content.trim() : '';
-                const baseSummary = n.summary ? n.summary.trim() : '';
-                
-                const zeroStatePlaceholders = ['draft ideation process.', 'ai processing pending...', 'locally captured transcription data.'];
-                const useContentFallback = !baseSummary || zeroStatePlaceholders.includes(baseSummary.toLowerCase());
-                
-                const contextPayload = useContentFallback 
-                    ? (contentText ? contentText.substring(0, 75) + "..." : "Empty note profile") 
-                    : baseSummary;
-
-                responseStr += `[${i+1}] ${n.title || 'Untitled'}: "${contextPayload}"\n`;
+                responseStr += `[${i+1}] ${n.title}: "${n.summary || n.content.substring(0,30)}..."\n`;
             });
             return responseStr;
         }
@@ -796,31 +743,7 @@ const LocalAIEngine = {
             return "No matching document handles could be located within your offline browser database structure.";
         }
 
-        return "I've evaluated your query across your local canvas data workspace. Let me know what specific themes or connections you'd like your learning companion to draw out next.";
-    },
-
-    // ROADMAP ADDITION: Gatekeeper Confirmation for Private Data Ecosystem Handoffs
-    triggerEcosystemExportGateway(targetPlatform) {
-        if (BrainlyState.notes.length === 0 && BrainlyState.aiChatHistory.length === 0) {
-            alert("There is no active compilation text available to export inside the runtime cache yet.");
-            return;
-        }
-
-        // Generate data packages on demand inside private memory scopes
-        const compilationPayload = {
-            exportedAt: new Date().toISOString(),
-            canvasNotes: BrainlyState.notes.map(n => ({ title: n.title, summary: n.summary, content: n.content })),
-            chatSessionTokens: BrainlyState.aiChatHistory
-        };
-
-        const confirmationPromptString = `⚠️ STAGE CONFIRMATION GATEWAY\n\nDo you explicitly authorize Brainly to share your local data package with your personal ${targetPlatform} account?\n\nThis web tool retains nothing. Your data remains strictly sandboxed until you confirm.`;
-        
-        if (confirm(confirmationPromptString)) {
-            console.log(`Payload authorized. Shipping to ${target Platform} pipeline stack:`, compilationPayload);
-            alert(`Success! Data package safely transferred out to your local ${targetPlatform} environment. Workspace cache remains private.`);
-        } else {
-            console.log("Export transaction blocked by user.");
-        }
+        return "Query evaluated. For deep local indexing execution, toggle WebLLM hardware acceleration packages inside the master configuration dashboard options.";
     }
 };
 
@@ -837,10 +760,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     UIRenderer.renderAll();
 
+    // Event Registration for FAB triggers
     document.getElementById('fab-new-note').addEventListener('click', () => {
         const id = `note-${Date.now()}`;
         BrainlyState.notes.push({
-            id, title: 'Untitled Document', summary: '', content: 'Enter data details...', x: 500, y: 180, collapsed: false, views: 0, timestamp: Date.now()
+            id, title: 'Untitled Document', summary: 'Draft ideation process.', content: 'Enter data details...', x: 500, y: 180, collapsed: false, views: 0, timestamp: Date.now()
         });
         StorageController.save();
         UIRenderer.renderAll();
@@ -865,4 +789,30 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
     });
+
+    document.getElementById('pdf-upload').addEventListener('change', (e) => {
+        const targetFile = e.target.files[0];
+        if (targetFile && targetFile.type === "application/pdf") {
+            const generatedId = `pdf-${Date.now()}`;
+            
+            // Commit deep file configuration parameters directly into absolute local storage
+            BrainlyDB.savePDF(generatedId, targetFile, targetFile.name);
+            
+            BrainlyState.links.push({
+                id: generatedId,
+                title: targetFile.name,
+                url: null, // Indicated as binary object inside system core tracking routing
+                parentFolder: null
+            });
+            
+            StorageController.save();
+            UIRenderer.renderAll();
+        }
+    });
 });
+
+// Sanitization utility layer preventing structural exploitation inside nodes
+function escapeHTML(str) {
+    if (!str) return '';
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
