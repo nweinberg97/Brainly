@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Brainly — Local-First Thinking Canvas</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="ai-styles.css">
 </head>
 <body>
 
@@ -43,7 +44,7 @@
             <div class="my-links-shelf" id="my-links-shelf"></div>
         </section>
 
-        </main>
+    </main>
 
     <nav class="bottom-ui-container">
         <div class="fab-cluster">
@@ -80,10 +81,24 @@
     </div>
 
     <div class="ai-panel hidden" id="ai-chat-panel">
-        <div class="ai-panel-header">
-            <div class="ai-panel-title">✨ Brainly Local Assistant</div>
-            <button class="close-panel-btn" id="close-ai-btn">×</button>
+        
+        <div class="ai-chat-panel-header">
+            <div class="ai-branding-block">
+                <span class="ai-spark-icon">✨</span>
+                <h3>Brainly AI Companion</h3>
+            </div>
+            <div class="ai-chat-control-array">
+                <button id="ai-voice-toggle-btn" class="ai-utility-action-btn" data-enabled="false" title="Toggle real-time audio playback">
+                    <span class="voice-status-indicator-dot"></span>
+                    <span id="ai-voice-btn-label">Voice: OFF</span>
+                </button>
+                <button id="ai-clear-history-btn" class="ai-utility-action-btn clear-danger-hover" title="Wipe current chat display history">
+                    Clear Log
+                </button>
+                <button id="close-ai-btn" aria-label="Minimize AI panel">×</button>
+            </div>
         </div>
+
         <div class="ai-chat-log" id="ai-chat-log">
             <div class="ai-message system">
                 Hello! I am your sandboxed intelligence engine running locally. I can parse across all canvas notes, links, and documents. Ask me anything.
@@ -95,6 +110,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script type="module" src="ai-core.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
