@@ -809,6 +809,32 @@ document.addEventListener('DOMContentLoaded', async () => {
             UIRenderer.renderAll();
         }
     });
+
+    // =====================================================================
+    // BRAINLY CONVERSATIONAL AI COMPANION WIRE EXTENSIONS
+    // =====================================================================
+    const aiVoiceBtn = document.getElementById('ai-voice-toggle-btn');
+    const aiClearBtn = document.getElementById('ai-clear-history-btn');
+    const aiChatWindowLog = document.getElementById('ai-chat-log');
+
+    // Mount background models gracefully
+    BrainlyAICore.init();
+
+    aiVoiceBtn.addEventListener('click', () => {
+        const structuralActiveState = aiVoiceBtn.getAttribute('data-enabled') === 'true';
+        const targetNextState = !structuralActiveState;
+        
+        BrainlyAICore.isVoiceActive = targetNextState;
+        aiVoiceBtn.setAttribute('data-enabled', targetNextState);
+        document.getElementById('ai-voice-btn-label').innerText = targetNextState ? "Voice: ON" : "Voice: OFF";
+    });
+
+    aiClearBtn.addEventListener('click', () => {
+        if (aiChatWindowLog) {
+            aiChatWindowLog.innerHTML = '';
+            console.log("Session memory view canvas wiped clean.");
+        }
+    });
 });
 
 // Sanitization utility layer preventing structural exploitation inside nodes
