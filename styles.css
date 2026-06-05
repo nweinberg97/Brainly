@@ -1,0 +1,707 @@
+/* =========================================
+  Brainly Custom Identity System Definitions
+  =========================================
+*/
+
+:root {
+    --bg-base: #f5f5f7;
+    --surface-blur: rgba(255, 255, 255, 0.7);
+    --surface-solid: #ffffff;
+    --text-primary: #1d1d1f;
+    --text-secondary: #86868b;
+    --accent-apple: #0071e3;
+    --border-color: rgba(0, 0, 0, 0.08);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.08);
+    --radius-lg: 16px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --font-stack: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: var(--font-stack);
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Header/Top Bar Construction */
+.top-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 52px;
+    background: var(--surface-blur);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border-color);
+    display: grid;
+    grid-template-columns: 240px 1fr 240px;
+    align-items: center;
+    padding: 0 20px;
+    z-index: 1000;
+}
+
+.top-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo {
+    font-size: 20px;
+}
+
+.app-title {
+    font-weight: 600;
+    font-size: 15px;
+    letter-spacing: -0.2px;
+}
+
+.top-bar-center {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.search-container {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+#global-search {
+    width: 100%;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.04);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0 12px 0 34px;
+    font-size: 14px;
+    color: var(--text-primary);
+    outline: none;
+    transition: var(--transition-smooth);
+}
+
+#global-search:focus {
+    background: var(--surface-solid);
+    box-shadow: inset 0 0 0 1.5px var(--accent-apple), var(--shadow-sm);
+}
+
+.top-bar-right {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.menu-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+}
+
+/* Main Spatial Canvas Workspace */
+.canvas-workspace {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    padding-top: 52px;
+    overflow: auto;
+    background-image: radial-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 0);
+    background-size: 24px 24px;
+}
+
+/* CRITICAL SYSTEM: My Links Container */
+.my-links-container {
+    position: absolute;
+    top: 72px;
+    left: 24px;
+    width: 320px;
+    max-height: calc(100vh - 160px);
+    background: var(--surface-blur);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    z-index: 100;
+    overflow-y: auto;
+}
+
+.my-links-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.my-links-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.my-links-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.my-links-actions button, .pdf-upload-label {
+    background: rgba(0, 0, 0, 0.04);
+    border: none;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: var(--transition-smooth);
+}
+
+.pdf-upload-label input[type="file"] {
+    display: none;
+}
+
+.my-links-actions button:hover, .pdf-upload-label:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+/* Folders Grid Structure within My Links Container */
+.my-links-folders {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.link-folder-bubble {
+    background: rgba(0, 0, 0, 0.03);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    cursor: pointer;
+    transition: var(--transition-smooth);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.link-folder-bubble:hover, .link-folder-bubble.dragover {
+    background: rgba(0, 0, 0, 0.06);
+    transform: scale(1.02);
+}
+
+.link-folder-title {
+    font-size: 12px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.link-folder-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    background: rgba(0, 0, 0, 0.03);
+    padding: 4px;
+    border-radius: 6px;
+    min-height: 32px;
+}
+
+.mini-indicator-dot {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 3px;
+}
+
+/* Link shelf container layouts */
+.my-links-shelf {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+}
+
+/* Universal Deterministic Visual Tile Execution */
+.deterministic-tile {
+    aspect-ratio: 1;
+    border-radius: var(--radius-md);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    cursor: grab;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.deterministic-tile:active {
+    cursor: grabbing;
+}
+
+.deterministic-tile:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.tile-emoji {
+    font-size: 20px;
+}
+
+.tile-title {
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: rgba(0, 0, 0, 0.7);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Spatial Elements: Floating Free-Canvas Elements */
+.canvas-element {
+    position: absolute;
+    z-index: 10;
+    cursor: grab;
+    user-select: none;
+}
+
+.canvas-element:active {
+    cursor: grabbing;
+}
+
+/* Note Visual Systems */
+.brainly-note {
+    width: 260px;
+    background: var(--surface-solid);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    transition: box-shadow 0.2s, transform 0.1s;
+}
+
+.brainly-note.dragging {
+    box-shadow: var(--shadow-md);
+    transform: scale(1.03);
+    z-index: 1000;
+}
+
+.note-header {
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.01);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.note-title-text {
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+    border-radius: 4px;
+    padding: 2px 4px;
+}
+
+.note-title-text[contenteditable="true"]:focus {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.note-toggle-btn {
+    background: none;
+    border: none;
+    font-size: 11px;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.note-body {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.note-ai-summary-box {
+    background: rgba(0, 113, 227, 0.05);
+    border-left: 2.5px solid var(--accent-apple);
+    padding: 6px 8px;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 11px;
+    color: var(--text-primary);
+    font-style: italic;
+    outline: none;
+}
+
+.note-raw-content {
+    font-size: 12px;
+    line-height: 1.5;
+    min-height: 40px;
+    outline: none;
+    color: #333;
+}
+
+.note-metadata-strip {
+    font-size: 9px;
+    color: var(--text-secondary);
+    display: flex;
+    justify-content: space-between;
+    padding-top: 4px;
+    border-top: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+/* Collapsed Note State Override */
+.brainly-note.collapsed {
+    width: 220px;
+}
+
+.brainly-note.collapsed .note-raw-content,
+.brainly-note.collapsed .note-metadata-strip {
+    display: none;
+}
+
+/* Thought Folder Canvas Elements */
+.thought-folder-node {
+    width: 96px;
+    height: 96px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.thought-folder-node.dragover {
+    background: rgba(0, 113, 227, 0.1);
+    border-color: var(--accent-apple);
+    transform: scale(1.08);
+}
+
+.folder-bubble-matrix {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+    width: 40px;
+    height: 40px;
+    background: rgba(0,0,0,0.04);
+    padding: 5px;
+    border-radius: 10px;
+}
+
+.folder-mini-dot {
+    background: rgba(0,0,0,0.2);
+    border-radius: 3px;
+    width: 100%;
+    height: 100%;
+}
+
+.thought-folder-node .folder-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    outline: none;
+}
+
+/* Floating Action Controller Layouts */
+.bottom-ui-container {
+    position: fixed;
+    bottom: 24px;
+    left: 50vw;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+.fab-cluster {
+    display: flex;
+    gap: 12px;
+    background: var(--surface-blur);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 8px 12px;
+    border-radius: 30px;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+}
+
+.fab-btn {
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 20px;
+    position: relative;
+    transition: var(--transition-smooth);
+}
+
+.fab-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.fab-icon {
+    font-size: 20px;
+}
+
+.fab-label {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Voice Active States */
+.pulse-indicator-dot {
+    position: absolute;
+    top: 4px;
+    right: 12px;
+    width: 6px;
+    height: 6px;
+    background: #ff3b30;
+    border-radius: 50%;
+    opacity: 0;
+}
+
+.fab-btn.recording .pulse-indicator-dot {
+    opacity: 1;
+    animation: pulse-key 1.2s infinite ease-in-out;
+}
+
+@keyframes pulse-key {
+    0% { transform: scale(0.9); opacity: 0.6; }
+    50% { transform: scale(1.4); opacity: 1; }
+    100% { transform: scale(0.9); opacity: 0.6; }
+}
+
+/* Trash Bin Dropzone UI */
+.trash-bin-zone {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 72px;
+    height: 72px;
+    background: var(--surface-blur);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 50%;
+    border: 1px dashed var(--border-color);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    transition: var(--transition-smooth);
+}
+
+.trash-bin-zone.hovered {
+    background: rgba(255, 59, 48, 0.15);
+    border-color: #ff3b30;
+    transform: scale(1.15);
+}
+
+.trash-bin-icon {
+    font-size: 22px;
+}
+
+.trash-bin-text {
+    font-size: 8px;
+    font-weight: 500;
+    margin-top: 2px;
+    color: var(--text-secondary);
+}
+
+/* Local AI Chat Floating Interface Panel */
+.ai-panel {
+    position: fixed;
+    bottom: 96px;
+    right: 24px;
+    width: 340px;
+    height: 460px;
+    background: var(--surface-solid);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    z-index: 1100;
+    overflow: hidden;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.ai-panel-header {
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ai-panel-title {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.close-panel-btn {
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.ai-chat-log {
+    flex-content: 1;
+    flex-grow: 1;
+    padding: 16px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ai-message {
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 8px 12px;
+    border-radius: var(--radius-md);
+    max-width: 85%;
+}
+
+.ai-message.system {
+    background: rgba(0,0,0,0.04);
+    align-self: flex-start;
+    color: var(--text-primary);
+}
+
+.ai-message.user {
+    background: var(--accent-apple);
+    color: white;
+    align-self: flex-end;
+}
+
+.ai-panel-input-zone {
+    padding: 12px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 8px;
+}
+
+.ai-panel-input-zone input {
+    flex-grow: 1;
+    height: 32px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    font-size: 12px;
+    outline: none;
+}
+
+.ai-panel-input-zone button {
+    background: var(--accent-apple);
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+/* Modals & Overlay Utilities */
+.modal-overlay {
+    position: fixed;
+    top:0; left:0; width:100vw; height:100vh;
+    background: rgba(0,0,0,0.2);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-surface {
+    background: var(--surface-solid);
+    width: 320px;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.modal-surface h4 { font-size: 14px; font-weight:600; }
+.modal-body input {
+    width: 100%;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    padding: 0 8px;
+    font-size: 13px;
+    outline: none;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.modal-footer button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.btn-secondary { background: rgba(0,0,0,0.05); color: var(--text-primary); }
+.btn-primary { background: var(--accent-apple); color: white; }
+
+.hidden { display: none !important; }
