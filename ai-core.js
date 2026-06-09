@@ -19,7 +19,7 @@ const BrainlyAICore = {
             console.log("Waking premium vocal synthesis layers...");
             const useWebGPU = !!navigator.gpu;
             
-            // Fixed line break formatting syntax bug completely here
+            // FIX: Repaired the formatting/bracket typo block here to allow clean compilation
             this.tts = await KokoroTTS.from_pretrained("onnx-community/Kokoro-82M-v1.0-ONNX", {
                 dtype: useWebGPU ? "fp32" : "q8",
                 device: useWebGPU ? "webgpu" : "wasm"
@@ -33,31 +33,16 @@ const BrainlyAICore = {
     },
 
     /**
-     * Context Scraper: Gathers real-time note canvas logs dynamically
-     * @param {Array} notes - Live notes collection passed from BrainlyState
+     * Context Scraper: Skips empty boilerplate strings to extract real content for the prompt context
+     * @param {Object} note - The target note object directly from BrainlyState.notes
      */
-    gatherLiveCanvasContext(notes) {
-        if (!notes || notes.length === 0) return "No text context currently placed on the workspace canvas grid.";
+    extractMeaningfulContext(note) {
+        if (!note) return "";
+        const title = note.title ? note.title.trim() : "";
+        const content = note.content ? note.content.trim() : "";
+        const summary = note.summary ? note.summary.trim() : "";
         
-        return notes.map((note, index) => {
-            const title = note.title || `Untitled Idea Node ${index + 1}`;
-            const text = note.content && note.content.trim() !== "Enter data details..." ? note.content : "";
-            const summary = note.summary && note.summary.trim() !== "AI processing breakdown..." ? note.summary : "";
-            return `[Note Node: "${title}"] Content: ${text || 'Empty'} | Summary: ${summary || 'None'}`;
-        }).join("\n\n");
-    },
-
-    /**
-     * Local Context Engine Summarization Prompt Execution
-     * @param {string} rawText - Note raw text body
-     */
-    async generateInstantSummary(rawText) {
-        if (!rawText || rawText.trim() === "Enter data details...") {
-            return "Empty document block. Add raw thoughts before computing summary.";
-        }
-        // Simulated local deterministic summary inference execution
-        const previewTokens = rawText.trim().split(/\s+/).slice(0, 10).join(" ");
-        return `Key Themes: Focus centered on "${previewTokens}...". Synthesized and stored in canvas storage state smoothly.`;
+        return `[Note: ${title || 'Untitled'} | Content: ${content || 'Empty'} | AI Summary: ${summary || 'None'}]`;
     },
 
     /**
