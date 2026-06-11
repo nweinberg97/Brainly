@@ -151,27 +151,28 @@ const UIRenderer = {
     init() {
         this.canvas = document.getElementById('canvas-workspace');
         this.linksShelf = document.getElementById('my-links-shelf');
-        this.linksFolderGrid = document.getElementById('my-links-folders-grid');
+        // Structural target connection matched directly to your new grid class
+        this.linksFolderGrid = document.querySelector('.my-links-folders');
         this.registerCanvasDragOver();
     },
 
     renderAll() {
         // Clear previous volatile UI configurations
-        document.querySelectorAll('.canvas-element').forEach(el => el.remove());
-        this.linksShelf.innerHTML = '';
-        this.linksFolderGrid.innerHTML = '';
+        document.querySelectorAll('#canvas-workspace > .canvas-element').forEach(el => el.remove());
+        if (this.linksShelf) this.linksShelf.innerHTML = '';
+        if (this.linksFolderGrid) this.linksFolderGrid.innerHTML = '';
 
         // Render My Links Directory infrastructure
         BrainlyState.linkFolders.forEach(folder => {
             const el = this.createLinkFolderBubble(folder);
-            this.linksFolderGrid.appendChild(el);
+            if (this.linksFolderGrid) this.linksFolderGrid.appendChild(el);
         });
 
         // Sort items inside My Links container shelf
         BrainlyState.links.forEach(link => {
             if (!link.parentFolder) {
                 const tile = this.createDeterministicTile(link);
-                this.linksShelf.appendChild(tile);
+                if (this.linksShelf) this.linksShelf.appendChild(tile);
             }
         });
 
@@ -211,7 +212,7 @@ const UIRenderer = {
             e.dataTransfer.setData('text/plain', item.id);
         });
 
-        // Double click to interact with targeted data
+        // Double click to open links or local binary PDF data objects
         tile.addEventListener('dblclick', () => {
             if (item.url) {
                 window.open(item.url, '_blank', 'noopener,noreferrer');
@@ -247,7 +248,7 @@ const UIRenderer = {
             <div class="link-folder-mini-grid">${subDotsHTML}</div>
         `;
 
-        // Handle dropping links into folders
+        // Handle dropping links into shelf folders
         div.addEventListener('dragover', (e) => e.preventDefault());
         div.addEventListener('dragenter', () => div.classList.add('dragover'));
         div.addEventListener('dragleave', () => div.classList.remove('dragover'));
@@ -261,13 +262,14 @@ const UIRenderer = {
                     targetLink.parentFolder = folder.id;
                     StorageController.save();
                     this.renderAll();
+                    // Live check if immersive workspace directory is open, re-sync view
+                    iOSFolderOverlaySystem.syncActiveFolderView(folder.id);
                 }
             }
         });
 
         div.addEventListener('dblclick', () => {
-            // Expand modal view container showing complete directory configuration
-            ModalSystem.showFolderContents(folder);
+            iOSFolderOverlaySystem.show(folder);
         });
 
         return div;
@@ -313,7 +315,6 @@ const UIRenderer = {
         summaryEl.addEventListener('blur', updateState);
         contentEl.addEventListener('blur', updateState);
 
-        // Tracking focus visibility data expansion arrays
         contentEl.addEventListener('focus', () => {
             note.views++;
             container.querySelector('.note-metadata-strip span').innerText = `👁️ ${note.views} views`;
@@ -356,7 +357,7 @@ const UIRenderer = {
             StorageController.save();
         });
 
-        // Enable internal ingestion targets
+        // Enable internal ingestion drop targets for cluster thought maps
         container.addEventListener('dragover', (e) => e.preventDefault());
         container.addEventListener('dragenter', () => container.classList.add('dragover'));
         container.addEventListener('dragleave', () => container.classList.remove('dragover'));
@@ -365,7 +366,7 @@ const UIRenderer = {
             container.classList.remove('dragover');
             const targetData = BrainlyState.activeDraggable;
             if (targetData && targetData.type === 'note') {
-                // Remove note from root canvas, append relation record arrays
+                // If dropping notes into spatial thought clusters
                 BrainlyState.notes = BrainlyState.notes.filter(n => n.id !== targetData.id);
                 StorageController.save();
                 UIRenderer.renderAll();
@@ -380,7 +381,6 @@ const UIRenderer = {
         element.addEventListener('dragstart', (e) => {
             BrainlyState.activeDraggable = { id: stateRef.id, type: element.dataset.type };
             element.classList.add('dragging');
-            // Offset cache logic parameters
             e.dataTransfer.setData('text/plain', JSON.stringify({
                 offsetX: e.offsetX,
                 offsetY: e.offsetY
@@ -402,7 +402,9 @@ const UIRenderer = {
             const active = BrainlyState.activeDraggable;
             if (!active) return;
 
-            // Handle clean dropping mechanisms back to shelf interface partitions
+            // Prevent absolute shifting when dropping structures inside folder overlays
+            if (e.target.closest('.ios-folder-grid-canvas')) return;
+
             if (e.target.id === 'canvas-workspace' && (active.type === 'note' || active.type === 'thought-folder')) {
                 let offset = { offsetX: 40, offsetY: 40 };
                 try {
@@ -427,11 +429,110 @@ const UIRenderer = {
     }
 };
 
+// =====================================================================
+// NEW IMMERSIVE iOS FOLDER OVERLAY CONTROLLER ROUTING ENGINE
+// =====================================================================
+const iOSFolderOverlaySystem = {
+    overlay: null,
+    titleField: null,
+    gridCanvas: null,
+    closeBtn: null,
+    currentFolderRef: null,
+
+    init() {
+        this.overlay = document.getElementById('ios-folder-overlay');
+        this.titleField = document.getElementById('ios-folder-title');
+        this.gridCanvas = document.getElementById('ios-folder-grid-canvas');
+        this.closeBtn = document.getElementById('ios-folder-close');
+
+        if (this.closeBtn) {
+            this.closeBtn.addEventListener('click', () => this.hide());
+        }
+
+        if (this.titleField) {
+            this.titleField.addEventListener('blur', () => {
+                if (this.currentFolderRef) {
+                    this.currentFolderRef.title = this.titleField.innerText;
+                    StorageController.save();
+                    UIRenderer.renderAll();
+                }
+            });
+        }
+
+        // Drop handling to receive content elements inside the immersive workspace grid container
+        if (this.gridCanvas) {
+            this.gridCanvas.addEventListener('dragover', (e) => e.preventDefault());
+            this.gridCanvas.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const active = BrainlyState.activeDraggable;
+                if (active && active.type === 'link-card' && this.currentFolderRef) {
+                    const targetLink = BrainlyState.links.find(l => l.id === active.id);
+                    if (targetLink) {
+                        targetLink.parentFolder = this.currentFolderRef.id;
+                        StorageController.save();
+                        UIRenderer.renderAll();
+                        this.syncActiveFolderView(this.currentFolderRef.id);
+                    }
+                }
+            });
+        }
+    },
+
+    show(folder) {
+        this.currentFolderRef = folder;
+        if (!this.overlay) return;
+
+        this.titleField.innerText = folder.title;
+        this.overlay.classList.remove('hidden');
+        this.syncActiveFolderView(folder.id);
+    },
+
+    syncActiveFolderView(folderId) {
+        if (!this.gridCanvas || !this.currentFolderRef || this.currentFolderRef.id !== folderId) return;
+        this.gridCanvas.innerHTML = '';
+
+        const children = BrainlyState.links.filter(l => l.parentFolder === folderId);
+
+        if (children.length === 0) {
+            this.gridCanvas.innerHTML = `<p style="font-size: 13px; color: rgba(255,255,255,0.6); grid-column: 1/-1; text-align: center; margin-top: 40px;">Folder Empty. Drag shelf tiles directly inside this view container.</p>`;
+            return;
+        }
+
+        children.forEach(child => {
+            const tile = UIRenderer.createDeterministicTile(child);
+            
+            // Inject customized context configurations to extract records out of directories
+            const removeHandle = document.createElement('span');
+            removeHandle.innerHTML = '&times;';
+            removeHandle.style.cssText = 'position: absolute; top: 4px; right: 8px; color: #ff3b30; font-size: 16px; font-weight: bold; cursor: pointer; z-index: 10;';
+            
+            removeHandle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                child.parentFolder = null;
+                StorageController.save();
+                UIRenderer.renderAll();
+                this.syncActiveFolderView(folderId);
+            });
+
+            tile.style.position = 'relative';
+            tile.appendChild(removeHandle);
+            this.gridCanvas.appendChild(tile);
+        });
+    },
+
+    hide() {
+        if (this.overlay) this.overlay.classList.add('hidden');
+        this.currentFolderRef = null;
+    }
+};
+
 // Central Search Interface Engine Execution Pipeline
 const EngineSearch = {
     init() {
         const input = document.getElementById('global-search');
-        input.addEventListener('input', (e) => this.execute(e.target.value));
+        if (input) {
+            input.addEventListener('input', (e) => this.execute(e.target.value));
+        }
     },
 
     execute(term) {
@@ -441,7 +542,7 @@ const EngineSearch = {
             return;
         }
 
-        // Apply strict selective filtering criteria across UI layouts
+        // Apply strict selective filtering criteria across active user UI structures
         document.querySelectorAll('.brainly-note').forEach(el => {
             const note = BrainlyState.notes.find(n => n.id === el.dataset.id);
             if (note) {
@@ -463,7 +564,7 @@ const EngineSearch = {
     }
 };
 
-// Interface Modals and Directory Overlay Routing Systems
+// Standard Text Input Fallback Modal Infrastructure System 
 const ModalSystem = {
     overlay: null,
     title: null,
@@ -479,75 +580,31 @@ const ModalSystem = {
         this.confirmBtn = document.getElementById('modal-confirm-btn');
         this.cancelBtn = document.getElementById('modal-cancel-btn');
 
-        this.cancelBtn.addEventListener('click', () => this.hide());
-        this.confirmBtn.addEventListener('click', () => {
-            if (this.onConfirmCallback) this.onConfirmCallback();
-            this.hide();
-        });
+        if (this.cancelBtn) this.cancelBtn.addEventListener('click', () => this.hide());
+        if (this.confirmBtn) {
+            this.confirmBtn.addEventListener('click', () => {
+                if (this.onConfirmCallback) this.onConfirmCallback();
+                this.hide();
+            });
+        }
     },
 
     showPrompt(titleText, inputPlaceholder, confirmCallback) {
+        if (!this.overlay) return;
         this.title.innerText = titleText;
         this.body.innerHTML = `<input type="text" id="modal-text-input" placeholder="${inputPlaceholder}" autocomplete="off">`;
         this.overlay.classList.remove('hidden');
         const input = document.getElementById('modal-text-input');
-        input.focus();
+        if (input) {
+            input.focus();
+        }
         this.onConfirmCallback = () => {
-            confirmCallback(input.value);
+            if (input) confirmCallback(input.value);
         };
     },
 
-    showFolderContents(folder) {
-        this.title.innerText = `Folder Target: ${folder.title}`;
-        const children = BrainlyState.links.filter(l => l.parentFolder === folder.id);
-        
-        let contentsHTML = '<div class="modal-folder-view-grid" style="display:grid; grid-template-columns:repeat(3,1fr); gap:10px; max-height:240px; overflow-y:auto; padding:10px 0;">';
-        if(children.length === 0) contentsHTML += '<p style="font-size:12px; color:gray; grid-column:span 3;">Folder empty. Drag tiles in inside the manager window.</p>';
-        
-        children.forEach(child => {
-            const color = IdentityEngine.generateHSL(child.url || child.title);
-            const emoji = IdentityEngine.matchEmoji(child.title, child.url || '');
-            contentsHTML += `
-                <div class="folder-extract-item" data-id="${child.id}" style="background:${color}; padding:8px; border-radius:8px; font-size:10px; cursor:pointer; position:relative;">
-                    <span>${emoji}</span> <br> <strong>${escapeHTML(child.title)}</strong>
-                    <span class="remove-from-folder" data-id="${child.id}" style="position:absolute; top:2px; right:6px; color:red; font-size:12px; font-weight:bold;">×</span>
-                </div>
-            `;
-        });
-        contentsHTML += '</div>';
-        
-        this.body.innerHTML = contentsHTML;
-        this.confirmBtn.innerText = "Close";
-        this.onConfirmCallback = null; // Display-only modal view container layout
-        this.overlay.classList.remove('hidden');
-
-        // Setup removal listeners
-        this.body.querySelectorAll('.remove-from-folder').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const linkId = btn.dataset.id;
-                const targetLink = BrainlyState.links.find(l => l.id === linkId);
-                if(targetLink) {
-                    targetLink.parentFolder = null;
-                    StorageController.save();
-                    this.hide();
-                    UIRenderer.renderAll();
-                }
-            });
-        });
-        
-        this.body.querySelectorAll('.folder-extract-item').forEach(item => {
-            item.addEventListener('click', () => {
-                const linkId = item.dataset.id;
-                const targetLink = BrainlyState.links.find(l => l.id === linkId);
-                if(targetLink && targetLink.url) window.open(targetLink.url, '_blank');
-            });
-        });
-    },
-
     hide() {
-        this.overlay.classList.add('hidden');
-        this.confirmBtn.innerText = "Confirm";
+        if (this.overlay) this.overlay.classList.add('hidden');
     }
 };
 
@@ -555,6 +612,8 @@ const ModalSystem = {
 const TrashSystem = {
     init() {
         const zone = document.getElementById('trash-bin-dropzone');
+        if (!zone) return;
+
         zone.addEventListener('dragover', (e) => e.preventDefault());
         zone.addEventListener('dragenter', () => zone.classList.add('hovered'));
         zone.addEventListener('dragleave', () => zone.classList.remove('hovered'));
@@ -575,6 +634,11 @@ const TrashSystem = {
                 }
                 StorageController.save();
                 UIRenderer.renderAll();
+                
+                // Keep the structural view in sync if an layout element was tossed from a directory layout canvas
+                if (iOSFolderOverlaySystem.currentFolderRef) {
+                    iOSFolderOverlaySystem.syncActiveFolderView(iOSFolderOverlaySystem.currentFolderRef.id);
+                }
             }
         });
     }
@@ -584,7 +648,7 @@ const TrashSystem = {
 const VoiceTranscriptionController = {
     recognition: null,
     isRecording: false,
-    masterTranscript: '', // Dedicated persistent sequence string
+    masterTranscript: '',
 
     init() {
         const SpeechEngine = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -596,8 +660,6 @@ const VoiceTranscriptionController = {
 
             this.recognition.onresult = (e) => {
                 let interimTranscript = '';
-                
-                // Process stream inputs incrementally from current delta tracking index point
                 for (let i = e.resultIndex; i < e.results.length; ++i) {
                     const transcriptChunk = e.results[i][0].transcript;
                     if (e.results[i].isFinal) {
@@ -607,7 +669,6 @@ const VoiceTranscriptionController = {
                     }
                 }
 
-                // Output real-time micro feedbacks cleanly inside labels
                 const displayLabel = document.getElementById('voice-label');
                 if (displayLabel) {
                     displayLabel.innerText = interimTranscript ? `...${interimTranscript.substring(0, 15)}` : 'Listening...';
@@ -620,7 +681,6 @@ const VoiceTranscriptionController = {
             };
 
             this.recognition.onend = () => {
-                // Safeguard against short-pause drops: Auto resume loop sequence if explicitly still active
                 if (this.isRecording) {
                     this.recognition.start();
                 } else {
@@ -641,12 +701,13 @@ const VoiceTranscriptionController = {
         const btn = document.getElementById('fab-voice-note');
         if (!this.isRecording) {
             this.isRecording = true;
-            this.masterTranscript = ''; // Clean buffer slate configurations
-            btn.classList.add('recording');
-            document.getElementById('voice-label').innerText = 'Listening...';
+            this.masterTranscript = '';
+            if (btn) btn.classList.add('recording');
+            const label = document.getElementById('voice-label');
+            if (label) label.innerText = 'Listening...';
             this.recognition.start();
         } else {
-            this.isRecording = false; // Flag to skip restart logic inside onend block handler
+            this.isRecording = false;
             this.recognition.stop();
         }
     },
@@ -665,7 +726,7 @@ const VoiceTranscriptionController = {
         if (cleanOutput.length > 0) {
             this.spawnVoiceNoteNode(cleanOutput);
         }
-        this.masterTranscript = ''; // Safely clear structural space boundaries
+        this.masterTranscript = '';
     },
 
     spawnVoiceNoteNode(transcribedText) {
@@ -686,7 +747,7 @@ const VoiceTranscriptionController = {
     }
 };
 
-// Sandbox WebWorker Vector Embedding Search Layer Mock
+// Sandbox Local Thought Engine Processing Layer
 const LocalAIEngine = {
     init() {
         const panel = document.getElementById('ai-chat-panel');
@@ -695,10 +756,11 @@ const LocalAIEngine = {
         const submit = document.getElementById('ai-submit-btn');
         const queryInput = document.getElementById('ai-user-query');
 
-        toggle.addEventListener('click', () => panel.classList.toggle('hidden'));
-        close.addEventListener('click', () => panel.classList.add('hidden'));
+        if (toggle && panel) toggle.addEventListener('click', () => panel.classList.toggle('hidden'));
+        if (close && panel) close.addEventListener('click', () => panel.classList.add('hidden'));
 
         const fireQuery = () => {
+            if (!queryInput) return;
             const query = queryInput.value.trim();
             if(!query) return;
             
@@ -709,19 +771,19 @@ const LocalAIEngine = {
                 const response = this.computeLocalInference(query);
                 const systemMsgNode = this.appendMessage('system', response);
                 
-                // Trigger premium audio synthesis layer if active global object exists
                 if (window.BrainlyAICore) {
                     await window.BrainlyAICore.playVocalResponse(response, systemMsgNode);
                 }
             }, 600);
         };
 
-        submit.addEventListener('click', fireQuery);
-        queryInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') fireQuery(); });
+        if (submit) submit.addEventListener('click', fireQuery);
+        if (queryInput) queryInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') fireQuery(); });
     },
 
     appendMessage(role, text) {
         const log = document.getElementById('ai-chat-log');
+        if (!log) return null;
         const msg = document.createElement('div');
         msg.className = `ai-message ${role}`;
         msg.innerText = text;
@@ -759,6 +821,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     StorageController.load();
     await BrainlyDB.init();
     UIRenderer.init();
+    iOSFolderOverlaySystem.init(); // Activate updated iOS layout overlay controller loops
     EngineSearch.init();
     ModalSystem.init();
     TrashSystem.init();
@@ -768,54 +831,65 @@ window.addEventListener('DOMContentLoaded', async () => {
     UIRenderer.renderAll();
 
     // Event Registration for FAB triggers
-    document.getElementById('fab-new-note').addEventListener('click', () => {
-        const id = `note-${Date.now()}`;
-        BrainlyState.notes.push({
-            id, title: 'Untitled Document', summary: 'Draft ideation process.', content: 'Enter data details...', x: 500, y: 180, collapsed: false, views: 0, timestamp: Date.now()
+    const newNoteBtn = document.getElementById('fab-new-note');
+    if (newNoteBtn) {
+        newNoteBtn.addEventListener('click', () => {
+            const id = `note-${Date.now()}`;
+            BrainlyState.notes.push({
+                id, title: 'Untitled Document', summary: 'Draft ideation process.', content: 'Enter data details...', x: 500, y: 180, collapsed: false, views: 0, timestamp: Date.now()
+            });
+            StorageController.save();
+            UIRenderer.renderAll();
         });
-        StorageController.save();
-        UIRenderer.renderAll();
-    });
+    }
 
-    document.getElementById('fab-voice-note').addEventListener('click', () => {
-        VoiceTranscriptionController.toggle();
-    });
+    const voiceNoteBtn = document.getElementById('fab-voice-note');
+    if (voiceNoteBtn) {
+        voiceNoteBtn.addEventListener('click', () => {
+            VoiceTranscriptionController.toggle();
+        });
+    }
 
-    document.getElementById('add-link-btn').addEventListener('click', () => {
-        ModalSystem.showPrompt("Add External Resource URL Link", "https://example.com/target", (inputUrl) => {
-            if (inputUrl && inputUrl.trim().length > 0) {
-                let parsedTitle = inputUrl.replace('https://', '').replace('http://', '').split('/')[0];
+    const addLinkBtn = document.getElementById('add-link-btn');
+    if (addLinkBtn) {
+        addLinkBtn.addEventListener('click', () => {
+            ModalSystem.showPrompt("Add External Resource URL Link", "https://example.com/target", (inputUrl) => {
+                if (inputUrl && inputUrl.trim().length > 0) {
+                    let parsedTitle = inputUrl.replace('https://', '').replace('http://', '').split('/')[0];
+                    BrainlyState.links.push({
+                        id: `link-${Date.now()}`,
+                        title: parsedTitle,
+                        url: inputUrl,
+                        parentFolder: null
+                    });
+                    StorageController.save();
+                    UIRenderer.renderAll();
+                }
+            });
+        });
+    }
+
+    const pdfUploadInput = document.getElementById('pdf-upload');
+    if (pdfUploadInput) {
+        pdfUploadInput.addEventListener('change', (e) => {
+            const targetFile = e.target.files[0];
+            if (targetFile && targetFile.type === "application/pdf") {
+                const generatedId = `pdf-${Date.now()}`;
+                
+                BrainlyDB.savePDF(generatedId, targetFile, targetFile.name);
+                
                 BrainlyState.links.push({
-                    id: `link-${Date.now()}`,
-                    title: parsedTitle,
-                    url: inputUrl,
+                    id: generatedId,
+                    title: targetFile.name,
+                    url: null,
                     parentFolder: null
                 });
+                
                 StorageController.save();
                 UIRenderer.renderAll();
             }
         });
-    });
-
-    document.getElementById('pdf-upload').addEventListener('change', (e) => {
-        const targetFile = e.target.files[0];
-        if (targetFile && targetFile.type === "application/pdf") {
-            const generatedId = `pdf-${Date.now()}`;
-            
-            // Commit deep file configuration parameters directly into absolute local storage
-            BrainlyDB.savePDF(generatedId, targetFile, targetFile.name);
-            
-            BrainlyState.links.push({
-                id: generatedId,
-                title: targetFile.name,
-                url: null, // Indicated as binary object inside system core tracking routing
-                parentFolder: null
-            });
-            
-            StorageController.save();
-            UIRenderer.renderAll();
-        }
-    });
+    }
 
     // =====================================================================
     // BRAINLY CONVERSATIONAL AI COMPANION WIRE EXTENSIONS
