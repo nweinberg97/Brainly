@@ -6,10 +6,8 @@
     
     <title>Brainly</title>
     
-    <!-- Drop your favicon link right here -->
     <link rel="icon" type="image/png" href="favicon.png">
     
-    <!-- Your stylesheet links go below it -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -31,6 +29,12 @@
     </header>
 
     <main class="canvas-workspace" id="canvas-workspace">
+        
+        <div class="canvas-control-dock" id="canvas-control-dock">
+            <button id="add-folder-btn" class="dock-action-btn" title="Create a grid-aligned iOS-style note folder">
+                <span class="btn-icon">+ 📁</span> Create Folder
+            </button>
+        </div>
         
         <section class="my-links-container" id="my-links-anchor">
             <div class="my-links-header">
@@ -63,8 +67,8 @@
                 <span class="fab-label" id="voice-label">Voice</span>
             </button>
             <button class="fab-btn" id="fab-ai-chat" title="Query Brainly Local AI">
-                <span class="fab-icon">✨</span>
-                <span class="fab-label">Brainly AI</span>
+                <span class="fab-icon">🗣️</span>
+                <span class="fab-label">Chat</span>
             </button>
         </div>
     </nav>
@@ -72,6 +76,17 @@
     <div class="trash-bin-zone" id="trash-bin-dropzone">
         <div class="trash-bin-icon">🗑️</div>
         <div class="trash-bin-text">Drop to Delete</div>
+    </div>
+
+    <div class="ios-folder-overlay hidden" id="ios-folder-overlay">
+        <div class="ios-folder-blur-backdrop" id="ios-folder-backdrop"></div>
+        <div class="ios-folder-container">
+            <div class="ios-folder-header">
+                <h2 id="ios-folder-title" contenteditable="true" spellcheck="false" title="Click to rename folder">Folder Name</h2>
+                <button class="ios-folder-close-btn" id="ios-folder-close-btn" aria-label="Close folder">Done</button>
+            </div>
+            <div class="ios-folder-grid" id="ios-folder-grid"></div>
+        </div>
     </div>
 
     <div class="modal-overlay hidden" id="generic-modal">
@@ -85,12 +100,11 @@
         </div>
     </div>
 
-    <!-- Local AI Chat Floating Interface Panel -->
     <div class="ai-panel hidden" id="ai-chat-panel">
         <div class="ai-chat-panel-header">
             <div class="ai-branding-block">
-                <span class="ai-spark-icon">✨</span>
-                <h3>Brainly AI Companion</h3>
+                <span class="ai-spark-icon">🗣️</span>
+                <h3>Chat</h3>
             </div>
             <div class="ai-chat-control-array">
                 <button id="ai-voice-toggle-btn" class="ai-utility-action-btn" data-enabled="false" title="Toggle real-time audio playback">
@@ -115,7 +129,6 @@
         </div>
     </div>
 
-    <!-- Script execution pipeline -->
     <script type="module" src="ai-core.js"></script>
     <script src="script.js"></script>
 </body>
